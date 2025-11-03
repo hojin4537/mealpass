@@ -77,8 +77,19 @@ export async function POST(request: NextRequest) {
     } catch (sheetsError: any) {
       console.error('❌ Google Sheets 저장 실패:', sheetsError);
       console.error('에러 상세:', sheetsError.message);
-      // Sheets 저장 실패해도 이미지는 업로드되었으므로 계속 진행
-      // 하지만 에러를 사용자에게 알려주는 것이 좋을 수 있음
+      console.error('에러 스택:', sheetsError.stack);
+      
+      // 에러를 클라이언트에도 반환하여 디버깅 가능하게 함
+      return NextResponse.json(
+        { 
+          success: true, // 이미지는 업로드되었으므로 success는 true
+          message: '제출되었습니다.',
+          imageUrl: uploadResponse.secure_url,
+          warning: 'Google Sheets 저장에 실패했습니다. 관리자에게 문의해주세요.',
+          error: process.env.NODE_ENV === 'development' ? sheetsError.message : undefined
+        },
+        { status: 200 }
+      );
     }
 
     // 콘솔에도 출력 (백업)

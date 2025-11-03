@@ -44,6 +44,12 @@ export async function saveToGoogleSheets(data: {
       throw new Error('GOOGLE_SHEET_ID가 설정되지 않았습니다.');
     }
 
+    // Private Key 포맷 확인
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    if (!privateKey || !privateKey.includes('BEGIN PRIVATE KEY')) {
+      throw new Error('GOOGLE_PRIVATE_KEY 형식이 올바르지 않습니다. 줄바꿈 문자(\\n)가 포함되어야 합니다.');
+    }
+
     console.log('Google Sheets에 데이터 저장 시도...');
     console.log('Spreadsheet ID:', spreadsheetId);
     console.log('저장할 데이터:', data);
