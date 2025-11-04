@@ -31,6 +31,7 @@ export default function Home() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [submittedPhone, setSubmittedPhone] = useState<string>('');
 
   const cafes: Restaurant[] = [
     { id: 1, name: '히어카페', address: '사근동길 55 1층 1호', image: '/images/restaurants/히어카페.png' },
@@ -170,6 +171,7 @@ export default function Home() {
       }
 
       setIsSuccess(true);
+      setSubmittedPhone(phone); // 제출된 전화번호 저장
       setName('');
       setPhone('010-');
       setAccountNumber('');
@@ -485,12 +487,34 @@ export default function Home() {
                         return;
                       }
                       setIsSubmittingFeedback(true);
-                      // TODO: 피드백 API 호출
-                      await new Promise(resolve => setTimeout(resolve, 500));
-                      alert('피드백이 전송되었습니다. 감사합니다!');
-                      setFeedbackText('');
-                      setShowFeedback(false);
-                      setIsSubmittingFeedback(false);
+                      
+                      try {
+                        const response = await fetch('/api/feedback', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({ 
+                            feedback: feedbackText,
+                            phone: submittedPhone 
+                          }),
+                        });
+
+                        const result = await response.json();
+
+                        if (!response.ok) {
+                          throw new Error(result.error || '피드백 전송에 실패했습니다.');
+                        }
+
+                        alert('피드백이 전송되었습니다. 감사합니다!');
+                        setFeedbackText('');
+                        setShowFeedback(false);
+                      } catch (error: any) {
+                        console.error('피드백 전송 오류:', error);
+                        alert('피드백 전송에 실패했습니다. 다시 시도해주세요.');
+                      } finally {
+                        setIsSubmittingFeedback(false);
+                      }
                     }}
                     disabled={isSubmittingFeedback}
                     className="flex-1 py-3 px-6 text-white rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -524,6 +548,7 @@ export default function Home() {
                 setSelectedCategory(null);
                 setShowFeedback(false);
                 setFeedbackText('');
+                setSubmittedPhone('');
               }}
               className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
             >
@@ -531,10 +556,10 @@ export default function Home() {
             </button>
           </div>
 
-          {/* 베타테스트 안내 */}
-          <p className="text-xs sm:text-sm text-gray-400 mt-8 text-center">
-            동네밥네.beta
-          </p>
+            {/* 베타테스트 안내 */}
+            <p className="text-xs sm:text-sm text-gray-400 mt-8 text-center">
+              동네밥네.beta
+            </p>
         </main>
       </div>
     );

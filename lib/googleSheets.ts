@@ -92,10 +92,10 @@ export async function saveToGoogleSheets(data: {
     console.log('Spreadsheet ID:', spreadsheetId);
     console.log('저장할 데이터:', data);
 
-    // 시트에 데이터 추가
+    // 시트에 데이터 추가 (F열 피드백은 비워둠)
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Sheet1!A:E',
+      range: 'Sheet1!A:F',
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [[
@@ -104,6 +104,7 @@ export async function saveToGoogleSheets(data: {
           data.phone,
           `${data.accountNumber} (${data.bank})`,
           data.imageUrl,
+          '', // 피드백 열 (비워둠)
         ]],
       },
     });
@@ -121,6 +122,102 @@ export async function saveToGoogleSheets(data: {
       console.error('상태 코드:', error.response.status);
     }
     console.error('==================================');
+    throw error;
+  }
+}
+
+export async function saveFeedbackToGoogleSheets(data: {
+  phone: string;
+  feedback: string;
+}) {
+  try {
+    // 환경 변수 확인
+    const cleanEnvVar = (value: string | undefined) => {
+      if (!value) return value;
+      return value.replace(/^"|"$/g, '');
+    };
+
+    const serviceAccountEmail = cleanEnvVar(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL);
+    const projectId = cleanEnvVar(process.env.GOOGLE_PROJECT_ID);
+    const spreadsheetId = cleanEnvVar(process.env.GOOGLE_SHEET_ID);
+
+    if (!serviceAccountEmail || !projectId || !spreadsheetId) {
+      throw new Error('Google Sheets 설정이 완료되지 않았습니다.');
+    }
+
+    // Private Key 처리
+    let privateKey: string;
+    
+    if (process.env.GOOGLE_PRIVATE_KEY_BASE64) {
+      const base64Key = cleanEnvVar(process.env.GOOGLE_PRIVATE_KEY_BASE64);
+      if (!base64Key) {
+        throw new Error('GOOGLE_PRIVATE_KEY_BASE64가 설정되지 않았습니다.');
+      }
+      privateKey = Buffer.from(base64Key, 'base64').toString('utf-8');
+    } else {
+      const privateKeyRaw = cleanEnvVar(process.env.GOOGLE_PRIVATE_KEY);
+      if (!privateKeyRaw) {
+        throw new Error('GOOGLE_PRIVATE_KEY 또는 GOOGLE_PRIVATE_KEY_BASE64가 설정되지 않았습니다.');
+      }
+      privateKey = privateKeyRaw
+        .replace(/\\n/g, '\n')
+        .replace(/\\\\n/g, '\n')
+        .replace(/\\r\\n/g, '\n')
+        .replace(/"/g, '');
+    }
+
+    // 서비스 계정 인증
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: serviceAccountEmail,
+        private_key: privateKey,
+        project_id: projectId,
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    console.log('피드백 Google Sheets에 저장 시도...');
+    console.log('전화번호:', data.phone);
+    console.log('저장할 피드백:', data.feedback);
+
+    // 모든 데이터 가져오기
+    const allData = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Sheet1!A:F',
+    });
+
+    const rows = allData.data.values || [];
+    
+    // 전화번호로 가장 최근 행 찾기 (위에서 아래로 검색, 가장 마지막 매칭된 행)
+    let targetRowIndex = -1;
+    for (let i = rows.length - 1; i >= 0; i--) {
+      // C열이 전화번호 (인덱스 2)
+      if (rows[i][2] === data.phone) {
+        targetRowIndex = i + 1; // Google Sheets는 1부터 시작
+        break;
+      }
+    }
+
+    if (targetRowIndex === -1) {
+      throw new Error('해당 전화번호로 제출된 내역을 찾을 수 없습니다.');
+    }
+
+    // F열 업데이트 (피드백 열)
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `Sheet1!F${targetRowIndex}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [[data.feedback]],
+      },
+    });
+
+    console.log(`피드백 Google Sheets 저장 성공! (행 ${targetRowIndex})`);
+    return { success: true };
+  } catch (error: any) {
+    console.error('피드백 Google Sheets 저장 오류:', error.message);
     throw error;
   }
 }
