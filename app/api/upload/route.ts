@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       cloudinary.uploader.upload(
         dataURI,
         {
-          folder: 'mealpass-receipts',
+          folder: 'dongnaebapnae-receipts',
           resource_type: 'auto',
         },
         (error, result) => {

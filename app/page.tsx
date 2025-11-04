@@ -3,7 +3,18 @@
 import { useState } from 'react';
 import Image from 'next/image';
 
+interface Restaurant {
+  id: number;
+  name: string;
+  address: string;
+  image?: string; // 이미지 경로 (optional)
+}
+
 export default function Home() {
+  const [showCategorySelection, setShowCategorySelection] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<'restaurant' | 'cafe' | null>(null);
+  const [showRestaurantList, setShowRestaurantList] = useState(false);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('010-');
@@ -17,6 +28,27 @@ export default function Home() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [fileError, setFileError] = useState('');
+
+  const cafes: Restaurant[] = [
+    { id: 1, name: '히어카페', address: '사근동길 55 1층 1호', image: '/images/restaurants/히어카페.png' },
+    { id: 2, name: '더스토리지', address: '사근동8길 6', image: '/images/restaurants/더스토리지.png' },
+    { id: 3, name: '카페사근', address: '사근동길 52-1 1층 카페,사근', image: '/images/restaurants/카페사근.png' },
+    { id: 4, name: '하냥', address: '사근동길 53카페 하냥', image: '/images/restaurants/하냥.png' },
+    { id: 5, name: '오잉키', address: '사근동길 64 1층 Oinky', image: '/images/restaurants/오잉키.png' },
+  ];
+
+  const restaurants: Restaurant[] = [
+    { id: 6, name: '스타뚝배기', address: '사근동8길 12', image: '/images/restaurants/스타뚝배기.png' },
+    { id: 7, name: '미네스키친', address: '사근동8길 3 1F MINEs KITCHEN', image: '/images/restaurants/미네스키친.png' },
+    { id: 8, name: '다시올치킨', address: '사근동8길 8', image: '/images/restaurants/다시올치킨.png' },
+    { id: 9, name: '한양촌', address: '사근동4길 11', image: '/images/restaurants/한양촌.png' },
+    { id: 10, name: '한끼라도잘먹자', address: '사근동8가길 1', image: '/images/restaurants/한끼라도잘먹자.png' },
+    { id: 11, name: '타이인플레이트', address: '사근동8길 3 우리빌딩', image: '/images/restaurants/타이인플레이트.png' },
+    { id: 12, name: '삼거리식당', address: '사근동10길 2-1', image: '/images/restaurants/삼거리식당.png' },
+    { id: 13, name: '종점토스트', address: '사근동9길 1 1층', image: '/images/restaurants/종점토스트.png' },
+    { id: 14, name: '고향식당', address: '사근동길 63 1층', image: '/images/restaurants/고향식당.png' },
+    { id: 15, name: '할매불백', address: '사근동11길 3', image: '/images/restaurants/할매불백.png' },
+  ];
 
   const banks = [
     'KB국민은행',
@@ -145,6 +177,9 @@ export default function Home() {
       setPreview(null);
       setPrivacyConsent(false);
       setFileError('');
+      setSelectedRestaurant(null);
+      setSelectedCategory(null);
+      setShowCategorySelection(false);
     } catch (error) {
       alert('제출 중 오류가 발생했습니다. 다시 시도해주세요.');
       console.error(error);
@@ -153,8 +188,179 @@ export default function Home() {
     }
   };
 
+  // 카테고리 선택 페이지
+  if (showCategorySelection && !showRestaurantList && !showForm && !isSuccess) {
+    return (
+      <div className="min-h-screen bg-gray-50 px-4 py-8">
+        <main className="w-full max-w-lg mx-auto">
+          {/* 헤더 */}
+          <div className="mb-8 flex items-center">
+            <button
+              onClick={() => setShowCategorySelection(false)}
+              className="mr-4 text-gray-600 hover:text-gray-900"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              식당/카페 선택
+            </h1>
+          </div>
+
+          {/* 환급 방법 안내 */}
+          <div className="mb-8 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
+                환급 방법
+              </h2>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                아래 제휴 대상 가게들을 확인하고 원하는 가게를 선택합니다. 이벤트 기간 내 매장 식사 후, 영수증을 첨부하면 영수증 금액 기준 최소 10%를 환급해드립니다.
+              </p>
+            </div>
+
+            <div className="mb-4 pb-4 border-b border-gray-200">
+              <p className="text-sm sm:text-base text-gray-700">
+                <span className="font-semibold">이벤트 기간:</span> 11월 5일 ~ 11월 19일
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs sm:text-sm font-semibold text-gray-800 mb-2">주의사항:</p>
+              <div className="text-xs sm:text-sm text-gray-600 space-y-1">
+                <p>• 환급금 지급은 약 14일 정도의 영업일이 걸릴 수 있습니다.</p>
+                <p>• 본 이벤트는 사전 고지 없이 조기 마감될 수 있습니다.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 카테고리 버튼 */}
+          <div className="space-y-4">
+            <button
+              onClick={() => {
+                setSelectedCategory('restaurant');
+                setShowCategorySelection(false);
+                setShowRestaurantList(true);
+              }}
+              className="w-full py-4 px-6 bg-white hover:bg-gray-50 text-gray-900 text-lg font-semibold rounded-lg transition-colors shadow-sm border border-gray-200"
+            >
+              식당에서 할인받기
+            </button>
+            <button
+              onClick={() => {
+                setSelectedCategory('cafe');
+                setShowCategorySelection(false);
+                setShowRestaurantList(true);
+              }}
+              className="w-full py-4 px-6 bg-white hover:bg-gray-50 text-gray-900 text-lg font-semibold rounded-lg transition-colors shadow-sm border border-gray-200"
+            >
+              카페에서 할인받기
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // 식당/카페 선택 페이지
+  if (showRestaurantList && !showForm && !isSuccess) {
+    return (
+      <div className="min-h-screen bg-gray-50 px-4 py-8">
+        <main className="w-full max-w-2xl mx-auto">
+          {/* 헤더 */}
+          <div className="mb-6 flex items-center">
+            <button
+              onClick={() => {
+                setShowRestaurantList(false);
+                setShowCategorySelection(true);
+              }}
+              className="mr-4 text-gray-600 hover:text-gray-900"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              {selectedCategory === 'restaurant' ? '식당 선택' : '카페 선택'}
+            </h1>
+          </div>
+
+          {/* 할인 안내 */}
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm sm:text-base text-blue-900 font-semibold mb-2">
+              결제 금액별 할인율
+            </p>
+            {selectedCategory === 'restaurant' ? (
+              <div className="text-xs sm:text-sm text-blue-800 space-y-1">
+                <p>• 3만원 미만 결제 시: <span className="font-semibold">10% 할인</span></p>
+                <p>• 3만원 이상 ~ 5만원 미만: <span className="font-semibold">15% 할인</span></p>
+                <p>• 5만원 이상 결제 시: <span className="font-semibold">20% 할인</span></p>
+              </div>
+            ) : (
+              <div className="text-xs sm:text-sm text-blue-800 space-y-1">
+                <p>• 2만원 미만 결제 시: <span className="font-semibold">10% 할인</span></p>
+                <p>• 2만원 이상 ~ 3만원 미만: <span className="font-semibold">15% 할인</span></p>
+                <p>• 3만원 이상 결제 시: <span className="font-semibold">20% 할인</span></p>
+              </div>
+            )}
+          </div>
+
+          {/* 식당/카페 리스트 */}
+          <div className="space-y-3">
+            {(selectedCategory === 'restaurant' ? restaurants : cafes).map((restaurant) => (
+              <button
+                key={restaurant.id}
+                onClick={() => {
+                  setSelectedRestaurant(restaurant);
+                  setShowRestaurantList(false);
+                  setShowForm(true);
+                }}
+                className="w-full bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden"
+              >
+                <div className="flex items-center p-4">
+                  {/* 사진 영역 */}
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-200 rounded-lg flex-shrink-0 mr-4 relative overflow-hidden">
+                    {restaurant.image ? (
+                      <Image
+                        src={restaurant.image}
+                        alt={restaurant.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                        이미지 없음
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* 텍스트 정보 */}
+                  <div className="flex-1 text-left">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
+                      {restaurant.name}
+                    </h3>
+                    <p className="text-sm sm:text-base text-gray-600">
+                      {restaurant.address}
+                    </p>
+                  </div>
+                  
+                  {/* 화살표 아이콘 */}
+                  <div className="ml-4 text-gray-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   // 랜딩 페이지
-  if (!showForm && !isSuccess) {
+  if (!showCategorySelection && !showRestaurantList && !showForm && !isSuccess) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white px-4 py-8 sm:py-12">
         <main className="w-full max-w-lg">
@@ -162,8 +368,8 @@ export default function Home() {
             {/* 로고 */}
             <div className="w-32 h-32 sm:w-40 sm:h-40 relative">
               <Image
-                src="/images/mealpass_logo.png"
-                alt="Mealpass 로고"
+                src="/images/dongnaebapnae_logo.png"
+                alt="동네밥네 로고"
                 fill
                 className="object-contain"
                 priority
@@ -171,7 +377,7 @@ export default function Home() {
             </div>
 
             {/* 서비스 이름 */}
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Mealpass</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">동네밥네</h1>
 
             {/* 헤드라인 */}
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight px-4">
@@ -181,12 +387,12 @@ export default function Home() {
 
             {/* 서브 헤드라인 */}
             <p className="text-base sm:text-lg text-gray-600 leading-relaxed px-4 max-w-md">
-              Mealpass는 소비자의 식비 고민을 덜어주면서 지역 경제에 활력을 더해줍니다. 우리의 동네를 위한 똑똑한 식사 생활을 지금 바로 시작하세요!
+              동네밥네는 소비자의 식비 고민을 덜어주면서 지역 경제에 활력을 더해줍니다. 우리의 동네를 위한 똑똑한 식사 생활을 지금 바로 시작하세요!
             </p>
 
             {/* 할인 받기 버튼 */}
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => setShowCategorySelection(true)}
               className="w-full max-w-sm py-4 px-6 bg-red-600 hover:bg-red-700 text-white text-lg font-semibold rounded-lg transition-colors shadow-lg"
             >
               할인 받기
@@ -214,6 +420,10 @@ export default function Home() {
                 onClick={() => {
                   setIsSuccess(false);
                   setShowForm(false);
+                  setShowRestaurantList(false);
+                  setShowCategorySelection(false);
+                  setSelectedRestaurant(null);
+                  setSelectedCategory(null);
                 }}
                 className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors text-base sm:text-lg"
               >
@@ -234,7 +444,11 @@ export default function Home() {
           {/* 헤더 */}
           <div className="mb-6 flex items-center">
             <button
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                setShowForm(false);
+                setShowRestaurantList(true);
+                setShowCategorySelection(false);
+              }}
               className="mr-4 text-gray-600 hover:text-gray-900"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,12 +460,14 @@ export default function Home() {
             </h1>
           </div>
 
-          {/* 안내 문구 */}
-          <div className="mb-6 sm:mb-8 p-4 bg-red-50 rounded-lg border border-red-200">
-            <p className="text-sm sm:text-base text-red-900">
-              사근동 소재의 식당에서 식사를 하고 영수증을 찍어서 업로드해주시면 10% 환급을 해드립니다.
-            </p>
-          </div>
+          {/* 선택한 식당 정보 */}
+          {selectedRestaurant && (
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm sm:text-base text-blue-900">
+                <span className="font-semibold">{selectedRestaurant.name}</span>에서 식사를 하셨나요?
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* 이름 */}
@@ -298,7 +514,7 @@ export default function Home() {
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value.replace(/[^0-9]/g, ''))}
                 className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent focus:outline-none"
-                placeholder="계좌번호를 입력해주세요"
+                placeholder="환급받을 계좌번호를 입력해주세요"
                 required
               />
               <p className="mt-1 text-xs text-gray-500">- 없이 숫자만 입력해주세요</p>
