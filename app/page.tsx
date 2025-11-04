@@ -28,6 +28,9 @@ export default function Home() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [fileError, setFileError] = useState('');
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
   const cafes: Restaurant[] = [
     { id: 1, name: '히어카페', address: '사근동길 55 1층 1호', image: '/images/restaurants/히어카페.png' },
@@ -211,12 +214,14 @@ export default function Home() {
           {/* 환급 방법 안내 */}
           <div className="mb-8 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="mb-4">
-              <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3">
                 환급 방법
               </h2>
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-                아래 제휴 대상 가게들을 확인하고 원하는 가게를 선택합니다. 이벤트 기간 내 매장 식사 후, 영수증을 첨부하면 영수증 금액 기준 최소 10%를 환급해드립니다.
-              </p>
+              <div className="text-sm sm:text-base text-gray-700 space-y-2">
+                <p>1. 할인 가능한 식당/카페를 확인해보세요.</p>
+                <p>2. 식사 후 해당 가게를 선택한 후, 영수증을 등록해주세요!</p>
+                <p>3. 입력해주신 계좌번호로 환급금이 지급될 예정입니다. </p>
+              </div>
             </div>
 
             <div className="mb-4 pb-4 border-b border-gray-200">
@@ -242,7 +247,10 @@ export default function Home() {
                 setShowCategorySelection(false);
                 setShowRestaurantList(true);
               }}
-              className="w-full py-4 px-6 bg-white hover:bg-gray-50 text-gray-900 text-lg font-semibold rounded-lg transition-colors shadow-sm border border-gray-200"
+              className="w-full py-4 px-6 text-white text-lg font-semibold rounded-lg transition-colors shadow-sm"
+              style={{ backgroundColor: '#FF3F3F' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E63737'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FF3F3F'}
             >
               식당에서 할인받기
             </button>
@@ -252,11 +260,19 @@ export default function Home() {
                 setShowCategorySelection(false);
                 setShowRestaurantList(true);
               }}
-              className="w-full py-4 px-6 bg-white hover:bg-gray-50 text-gray-900 text-lg font-semibold rounded-lg transition-colors shadow-sm border border-gray-200"
+              className="w-full py-4 px-6 text-white text-lg font-semibold rounded-lg transition-colors shadow-sm"
+              style={{ backgroundColor: '#FF3F3F' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E63737'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FF3F3F'}
             >
               카페에서 할인받기
             </button>
           </div>
+
+          {/* 베타테스트 안내 */}
+          <p className="text-xs sm:text-sm text-gray-400 mt-8 text-center">
+            동네밥네.beta
+          </p>
         </main>
       </div>
     );
@@ -354,6 +370,11 @@ export default function Home() {
               </button>
             ))}
           </div>
+
+          {/* 베타테스트 안내 */}
+          <p className="text-xs sm:text-sm text-gray-400 mt-8 text-center">
+            동네밥네.beta
+          </p>
         </main>
       </div>
     );
@@ -387,16 +408,26 @@ export default function Home() {
 
             {/* 서브 헤드라인 */}
             <p className="text-base sm:text-lg text-gray-600 leading-relaxed px-4 max-w-md">
-              동네밥네는 소비자의 식비 고민을 덜어주면서 지역 경제에 활력을 더해줍니다. 우리의 동네를 위한 똑똑한 식사 생활을 지금 바로 시작하세요!
+              동네밥네는 소비자의 식비 고민을 덜어주면서<br />
+              지역 경제에 활력을 더해줍니다. 우리의 동네를 위한<br />
+              똑똑한 식사 생활을 지금 바로 시작하세요!
             </p>
 
             {/* 할인 받기 버튼 */}
             <button
               onClick={() => setShowCategorySelection(true)}
-              className="w-full max-w-sm py-4 px-6 bg-red-600 hover:bg-red-700 text-white text-lg font-semibold rounded-lg transition-colors shadow-lg"
+              className="w-full max-w-sm py-4 px-6 text-white text-lg font-semibold rounded-lg transition-colors shadow-lg"
+              style={{ backgroundColor: '#FF3F3F' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E63737'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FF3F3F'}
             >
               할인 받기
             </button>
+
+            {/* 베타테스트 안내 */}
+            <p className="text-xs sm:text-sm text-gray-400 mt-8">
+              동네밥네.beta
+            </p>
           </div>
         </main>
       </div>
@@ -410,27 +441,100 @@ export default function Home() {
         <main className="w-full max-w-lg">
           <div className="bg-white p-6 sm:p-8 rounded-lg shadow-sm">
             <div className="text-center py-8">
-              <div className="mb-4 text-green-600 text-xl sm:text-2xl font-semibold">
+              <div className="mb-4 text-xl sm:text-2xl font-semibold" style={{ color: '#FF3F3F' }}>
                 제출되었습니다.
               </div>
-              <p className="text-gray-600 mb-6 text-base sm:text-lg">
-                확인 후 연락드리겠습니다.
-              </p>
-              <button
-                onClick={() => {
-                  setIsSuccess(false);
-                  setShowForm(false);
-                  setShowRestaurantList(false);
-                  setShowCategorySelection(false);
-                  setSelectedRestaurant(null);
-                  setSelectedCategory(null);
-                }}
-                className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors text-base sm:text-lg"
-              >
-                다시 제출하기
-              </button>
+              <div className="mb-6 space-y-3 text-base sm:text-lg text-gray-700">
+                <p>
+                  환급금은 영업일 기준 14일 이내에<br />
+                  입력해주신 계좌번호로 지급될 예정입니다.
+                </p>
+                <p className="text-gray-600">
+                  동네밥네.beta 에 참여해주셔서 감사합니다.
+                </p>
+              </div>
             </div>
           </div>
+
+          {/* 피드백 입력 */}
+          <div className="mt-6 bg-white p-6 sm:p-8 rounded-lg shadow-sm">
+            {!showFeedback ? (
+              <button
+                onClick={() => setShowFeedback(true)}
+                className="w-full py-3 px-6 text-white rounded-lg transition-colors text-base sm:text-lg"
+                style={{ backgroundColor: '#FF3F3F' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E63737'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FF3F3F'}
+              >
+                피드백 남기기
+              </button>
+            ) : (
+              <div className="space-y-4">
+                <textarea
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  placeholder="피드백을 입력해주세요..."
+                  className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-transparent focus:outline-none resize-none"
+                  rows={5}
+                />
+                <div className="flex gap-3">
+                  <button
+                    onClick={async () => {
+                      if (!feedbackText.trim()) {
+                        alert('피드백을 입력해주세요.');
+                        return;
+                      }
+                      setIsSubmittingFeedback(true);
+                      // TODO: 피드백 API 호출
+                      await new Promise(resolve => setTimeout(resolve, 500));
+                      alert('피드백이 전송되었습니다. 감사합니다!');
+                      setFeedbackText('');
+                      setShowFeedback(false);
+                      setIsSubmittingFeedback(false);
+                    }}
+                    disabled={isSubmittingFeedback}
+                    className="flex-1 py-3 px-6 text-white rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: isSubmittingFeedback ? '#9CA3AF' : '#FF3F3F' }}
+                  >
+                    {isSubmittingFeedback ? '전송 중...' : '전송하기'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowFeedback(false);
+                      setFeedbackText('');
+                    }}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 다시 제출하기 버튼 */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                setIsSuccess(false);
+                setShowForm(false);
+                setShowRestaurantList(false);
+                setShowCategorySelection(false);
+                setSelectedRestaurant(null);
+                setSelectedCategory(null);
+                setShowFeedback(false);
+                setFeedbackText('');
+              }}
+              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              더 이용하기
+            </button>
+          </div>
+
+          {/* 베타테스트 안내 */}
+          <p className="text-xs sm:text-sm text-gray-400 mt-8 text-center">
+            동네밥네.beta
+          </p>
         </main>
       </div>
     );
@@ -480,7 +584,7 @@ export default function Home() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent focus:outline-none"
+                className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-transparent focus:outline-none"
                 placeholder="이름을 입력해주세요"
                 required
               />
@@ -496,7 +600,7 @@ export default function Home() {
                 type="tel"
                 value={phone}
                 onChange={handlePhoneChange}
-                className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent focus:outline-none"
+                className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-transparent focus:outline-none"
                 placeholder="010-0000-0000"
                 required
                 maxLength={13}
@@ -513,7 +617,7 @@ export default function Home() {
                 type="text"
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value.replace(/[^0-9]/g, ''))}
-                className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent focus:outline-none"
+                className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-transparent focus:outline-none"
                 placeholder="환급받을 계좌번호를 입력해주세요"
                 required
               />
@@ -538,7 +642,7 @@ export default function Home() {
                         setBank(e.target.value);
                       }
                     }}
-                    className="w-full px-4 py-3 text-base text-black bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none appearance-none cursor-pointer hover:border-gray-400 transition-colors"
+                    className="w-full px-4 py-3 text-base text-black bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-[#FF3F3F] focus:outline-none appearance-none cursor-pointer hover:border-gray-400 transition-colors"
                     required={!isBankCustom}
                   >
                     <option value="" className="text-gray-400">은행을 선택해주세요</option>
@@ -561,7 +665,7 @@ export default function Home() {
                       type="text"
                       value={customBank}
                       onChange={(e) => setCustomBank(e.target.value)}
-                      className="flex-1 px-4 py-3 text-base text-black border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none"
+                      className="flex-1 px-4 py-3 text-base text-black border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-[#FF3F3F] focus:outline-none"
                       placeholder="은행명을 입력해주세요"
                       required={isBankCustom}
                     />
@@ -591,13 +695,13 @@ export default function Home() {
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#FF3F3F]/10 file:text-[#FF3F3F] hover:file:bg-[#FF3F3F]/20"
                 required
               />
               <p className="mt-1 text-xs text-gray-500">한 장만 업로드 가능 (최대 5MB)</p>
               
               {fileError && (
-                <p className="mt-2 text-sm text-red-600">{fileError}</p>
+                <p className="mt-2 text-sm" style={{ color: '#FF3F3F' }}>{fileError}</p>
               )}
               
               {preview && (
@@ -622,7 +726,8 @@ export default function Home() {
                   type="checkbox"
                   checked={privacyConsent}
                   onChange={(e) => setPrivacyConsent(e.target.checked)}
-                  className="mt-1 mr-3 w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                  className="mt-1 mr-3 w-4 h-4 border-gray-300 rounded"
+                  style={{ accentColor: '#FF3F3F' }}
                   required
                 />
                 <span className="text-sm text-gray-700">
@@ -643,12 +748,24 @@ export default function Home() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-4 px-6 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
+              className="w-full py-4 px-6 text-white text-lg font-semibold rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
+              style={{ backgroundColor: isSubmitting ? '#9CA3AF' : '#FF3F3F' }}
+              onMouseEnter={(e) => {
+                if (!isSubmitting) e.currentTarget.style.backgroundColor = '#E63737';
+              }}
+              onMouseLeave={(e) => {
+                if (!isSubmitting) e.currentTarget.style.backgroundColor = '#FF3F3F';
+              }}
             >
               {isSubmitting ? '제출 중...' : '제출하기'}
             </button>
           </form>
         </div>
+
+        {/* 베타테스트 안내 */}
+        <p className="text-xs sm:text-sm text-gray-400 mt-8 text-center">
+          동네밥네.beta
+        </p>
       </main>
     </div>
   );
