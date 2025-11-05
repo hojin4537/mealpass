@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveFeedbackToGoogleSheets } from '@/lib/googleSheets';
+import { saveFeedbackToGoogleSheets, saveFeedbackWithoutPhone } from '@/lib/googleSheets';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,18 +12,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!phone) {
-      return NextResponse.json(
-        { error: '전화번호가 필요합니다.' },
-        { status: 400 }
-      );
-    }
-
     try {
-      await saveFeedbackToGoogleSheets({
-        phone: phone.trim(),
-        feedback: feedback.trim(),
-      });
+      // 전화번호가 있으면 해당 행에 저장, 없으면 새로운 행에 저장
+      if (phone) {
+        await saveFeedbackToGoogleSheets({
+          phone: phone.trim(),
+          feedback: feedback.trim(),
+        });
+      } else {
+        // 전화번호 없이 피드백만 저장 (마지막 행의 F열에 추가)
+        await saveFeedbackWithoutPhone({
+          feedback: feedback.trim(),
+        });
+      }
       console.log('✅ 피드백 Google Sheets 저장 완료');
     } catch (sheetsError: any) {
       console.error('❌ 피드백 Google Sheets 저장 실패:', sheetsError);

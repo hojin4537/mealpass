@@ -36,18 +36,18 @@ export default function Home() {
   const cafes: Restaurant[] = [
     { id: 1, name: '히어카페', address: '사근동길 55 1층 1호', image: '/images/restaurants/히어카페.png' },
     { id: 2, name: '더스토리지', address: '사근동8길 6', image: '/images/restaurants/더스토리지.png' },
-    { id: 3, name: '카페사근', address: '사근동길 52-1 1층 카페,사근', image: '/images/restaurants/카페사근.png' },
-    { id: 4, name: '하냥', address: '사근동길 53카페 하냥', image: '/images/restaurants/하냥.png' },
-    { id: 5, name: '오잉키', address: '사근동길 64 1층 Oinky', image: '/images/restaurants/오잉키.png' },
+    { id: 3, name: '카페사근', address: '사근동길 52-1 1층', image: '/images/restaurants/카페사근.png' },
+    { id: 4, name: '하냥', address: '사근동길 53', image: '/images/restaurants/하냥.png' },
+    { id: 5, name: '오잉키', address: '사근동길 64 1층', image: '/images/restaurants/오잉키.png' },
   ];
 
   const restaurants: Restaurant[] = [
     { id: 6, name: '스타뚝배기', address: '사근동8길 12', image: '/images/restaurants/스타뚝배기.png' },
-    { id: 7, name: '미네스키친', address: '사근동8길 3 1F MINEs KITCHEN', image: '/images/restaurants/미네스키친.png' },
+    { id: 7, name: '미네스키친', address: '사근동8길 3 1F', image: '/images/restaurants/미네스키친.png' },
     { id: 8, name: '다시올치킨', address: '사근동8길 8', image: '/images/restaurants/다시올치킨.png' },
     { id: 9, name: '한양촌', address: '사근동4길 11', image: '/images/restaurants/한양촌.png' },
     { id: 10, name: '한끼라도잘먹자', address: '사근동8가길 1', image: '/images/restaurants/한끼라도잘먹자.png' },
-    { id: 11, name: '타이인플레이트', address: '사근동8길 3 우리빌딩', image: '/images/restaurants/타이인플레이트.png' },
+    { id: 11, name: '타이인플레이트', address: '사근동8길 3', image: '/images/restaurants/타이인플레이트.png' },
     { id: 12, name: '삼거리식당', address: '사근동10길 2-1', image: '/images/restaurants/삼거리식당.png' },
     { id: 13, name: '종점토스트', address: '사근동9길 1 1층', image: '/images/restaurants/종점토스트.png' },
     { id: 14, name: '고향식당', address: '사근동길 63 1층', image: '/images/restaurants/고향식당.png' },
@@ -199,7 +199,7 @@ export default function Home() {
       <div className="min-h-screen bg-gray-50 px-4 py-8">
         <main className="w-full max-w-lg mx-auto">
           {/* 헤더 */}
-          <div className="mb-8 flex items-center">
+          <div className="mb-6 flex items-center">
             <button
               onClick={() => setShowCategorySelection(false)}
               className="mr-4 text-gray-600 hover:text-gray-900"
@@ -209,7 +209,7 @@ export default function Home() {
               </svg>
             </button>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-              식당/카페 선택
+              할인받기
             </h1>
           </div>
 
@@ -272,9 +272,86 @@ export default function Home() {
           </div>
 
           {/* 베타테스트 안내 */}
-          <p className="text-xs sm:text-sm text-gray-400 mt-8 text-center">
-            동네밥네.beta
-          </p>
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <p className="text-xs sm:text-sm text-gray-400">
+              동네밥네.beta
+            </p>
+            <button
+              onClick={() => setShowFeedback(true)}
+              className="text-xs sm:text-sm text-gray-400 hover:text-gray-600 underline"
+            >
+              피드백하기
+            </button>
+          </div>
+
+          {/* 피드백 모달 */}
+          {showFeedback && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">피드백 남기기</h3>
+                <textarea
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  placeholder="피드백을 입력해주세요..."
+                  className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-transparent focus:outline-none resize-none"
+                  rows={5}
+                />
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={async () => {
+                      if (!feedbackText.trim()) {
+                        alert('피드백을 입력해주세요.');
+                        return;
+                      }
+                      setIsSubmittingFeedback(true);
+                      
+                      try {
+                        const response = await fetch('/api/feedback', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({ 
+                            feedback: feedbackText,
+                            phone: submittedPhone || undefined
+                          }),
+                        });
+
+                        const result = await response.json();
+
+                        if (!response.ok) {
+                          throw new Error(result.error || '피드백 전송에 실패했습니다.');
+                        }
+
+                        alert('피드백이 전송되었습니다. 감사합니다!');
+                        setFeedbackText('');
+                        setShowFeedback(false);
+                      } catch (error: any) {
+                        console.error('피드백 전송 오류:', error);
+                        alert('피드백 전송에 실패했습니다. 다시 시도해주세요.');
+                      } finally {
+                        setIsSubmittingFeedback(false);
+                      }
+                    }}
+                    disabled={isSubmittingFeedback}
+                    className="flex-1 py-3 px-6 text-white rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: isSubmittingFeedback ? '#9CA3AF' : '#FF3F3F' }}
+                  >
+                    {isSubmittingFeedback ? '전송 중...' : '전송하기'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowFeedback(false);
+                      setFeedbackText('');
+                    }}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     );
@@ -374,9 +451,86 @@ export default function Home() {
           </div>
 
           {/* 베타테스트 안내 */}
-          <p className="text-xs sm:text-sm text-gray-400 mt-8 text-center">
-            동네밥네.beta
-          </p>
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <p className="text-xs sm:text-sm text-gray-400">
+              동네밥네.beta
+            </p>
+            <button
+              onClick={() => setShowFeedback(true)}
+              className="text-xs sm:text-sm text-gray-400 hover:text-gray-600 underline"
+            >
+              피드백하기
+            </button>
+          </div>
+
+          {/* 피드백 모달 */}
+          {showFeedback && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">피드백 남기기</h3>
+                <textarea
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  placeholder="피드백을 입력해주세요..."
+                  className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-transparent focus:outline-none resize-none"
+                  rows={5}
+                />
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={async () => {
+                      if (!feedbackText.trim()) {
+                        alert('피드백을 입력해주세요.');
+                        return;
+                      }
+                      setIsSubmittingFeedback(true);
+                      
+                      try {
+                        const response = await fetch('/api/feedback', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({ 
+                            feedback: feedbackText,
+                            phone: submittedPhone || undefined
+                          }),
+                        });
+
+                        const result = await response.json();
+
+                        if (!response.ok) {
+                          throw new Error(result.error || '피드백 전송에 실패했습니다.');
+                        }
+
+                        alert('피드백이 전송되었습니다. 감사합니다!');
+                        setFeedbackText('');
+                        setShowFeedback(false);
+                      } catch (error: any) {
+                        console.error('피드백 전송 오류:', error);
+                        alert('피드백 전송에 실패했습니다. 다시 시도해주세요.');
+                      } finally {
+                        setIsSubmittingFeedback(false);
+                      }
+                    }}
+                    disabled={isSubmittingFeedback}
+                    className="flex-1 py-3 px-6 text-white rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: isSubmittingFeedback ? '#9CA3AF' : '#FF3F3F' }}
+                  >
+                    {isSubmittingFeedback ? '전송 중...' : '전송하기'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowFeedback(false);
+                      setFeedbackText('');
+                    }}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     );
@@ -399,9 +553,6 @@ export default function Home() {
               />
             </div>
 
-            {/* 서비스 이름 */}
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">동네밥네</h1>
-
             {/* 헤드라인 */}
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight px-4">
               매일 가던 그 식당,<br />
@@ -410,7 +561,7 @@ export default function Home() {
 
             {/* 서브 헤드라인 */}
             <p className="text-base sm:text-lg text-gray-600 leading-relaxed px-4 max-w-md">
-              동네밥네는 소비자의 식비 고민을 덜어주면서<br />
+              동네밥네는 여러분의 식비 고민을 덜어주면서<br />
               지역 경제에 활력을 더해줍니다. 우리의 동네를 위한<br />
               똑똑한 식사 생활을 지금 바로 시작하세요!
             </p>
@@ -427,9 +578,86 @@ export default function Home() {
             </button>
 
             {/* 베타테스트 안내 */}
-            <p className="text-xs sm:text-sm text-gray-400 mt-8">
-              동네밥네.beta
-            </p>
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <p className="text-xs sm:text-sm text-gray-400">
+                동네밥네.beta
+              </p>
+              <button
+                onClick={() => setShowFeedback(true)}
+                className="text-xs sm:text-sm text-gray-400 hover:text-gray-600 underline"
+              >
+                피드백하기
+              </button>
+            </div>
+
+            {/* 피드백 모달 */}
+            {showFeedback && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">피드백 남기기</h3>
+                  <textarea
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                    placeholder="피드백을 입력해주세요..."
+                    className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-transparent focus:outline-none resize-none"
+                    rows={5}
+                  />
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      onClick={async () => {
+                        if (!feedbackText.trim()) {
+                          alert('피드백을 입력해주세요.');
+                          return;
+                        }
+                        setIsSubmittingFeedback(true);
+                        
+                        try {
+                          const response = await fetch('/api/feedback', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ 
+                              feedback: feedbackText,
+                              phone: submittedPhone || undefined
+                            }),
+                          });
+
+                          const result = await response.json();
+
+                          if (!response.ok) {
+                            throw new Error(result.error || '피드백 전송에 실패했습니다.');
+                          }
+
+                          alert('피드백이 전송되었습니다. 감사합니다!');
+                          setFeedbackText('');
+                          setShowFeedback(false);
+                        } catch (error: any) {
+                          console.error('피드백 전송 오류:', error);
+                          alert('피드백 전송에 실패했습니다. 다시 시도해주세요.');
+                        } finally {
+                          setIsSubmittingFeedback(false);
+                        }
+                      }}
+                      disabled={isSubmittingFeedback}
+                      className="flex-1 py-3 px-6 text-white rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: isSubmittingFeedback ? '#9CA3AF' : '#FF3F3F' }}
+                    >
+                      {isSubmittingFeedback ? '전송 중...' : '전송하기'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowFeedback(false);
+                        setFeedbackText('');
+                      }}
+                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
@@ -463,7 +691,7 @@ export default function Home() {
             {!showFeedback ? (
               <button
                 onClick={() => setShowFeedback(true)}
-                className="w-full py-3 px-6 text-white rounded-lg transition-colors text-base sm:text-lg"
+                className="w-full py-4 px-6 text-white text-lg font-semibold rounded-lg transition-colors shadow-sm"
                 style={{ backgroundColor: '#FF3F3F' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E63737'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FF3F3F'}
@@ -557,9 +785,86 @@ export default function Home() {
           </div>
 
             {/* 베타테스트 안내 */}
-            <p className="text-xs sm:text-sm text-gray-400 mt-8 text-center">
-              동네밥네.beta
-            </p>
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <p className="text-xs sm:text-sm text-gray-400">
+                동네밥네.beta
+              </p>
+              <button
+                onClick={() => setShowFeedback(true)}
+                className="text-xs sm:text-sm text-gray-400 hover:text-gray-600 underline"
+              >
+                피드백하기
+              </button>
+            </div>
+
+            {/* 피드백 모달 */}
+            {showFeedback && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">피드백 남기기</h3>
+                  <textarea
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                    placeholder="피드백을 입력해주세요..."
+                    className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-transparent focus:outline-none resize-none"
+                    rows={5}
+                  />
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      onClick={async () => {
+                        if (!feedbackText.trim()) {
+                          alert('피드백을 입력해주세요.');
+                          return;
+                        }
+                        setIsSubmittingFeedback(true);
+                        
+                        try {
+                          const response = await fetch('/api/feedback', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ 
+                              feedback: feedbackText,
+                              phone: submittedPhone || undefined
+                            }),
+                          });
+
+                          const result = await response.json();
+
+                          if (!response.ok) {
+                            throw new Error(result.error || '피드백 전송에 실패했습니다.');
+                          }
+
+                          alert('피드백이 전송되었습니다. 감사합니다!');
+                          setFeedbackText('');
+                          setShowFeedback(false);
+                        } catch (error: any) {
+                          console.error('피드백 전송 오류:', error);
+                          alert('피드백 전송에 실패했습니다. 다시 시도해주세요.');
+                        } finally {
+                          setIsSubmittingFeedback(false);
+                        }
+                      }}
+                      disabled={isSubmittingFeedback}
+                      className="flex-1 py-3 px-6 text-white rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: isSubmittingFeedback ? '#9CA3AF' : '#FF3F3F' }}
+                    >
+                      {isSubmittingFeedback ? '전송 중...' : '전송하기'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowFeedback(false);
+                        setFeedbackText('');
+                      }}
+                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
         </main>
       </div>
     );
@@ -788,9 +1093,86 @@ export default function Home() {
         </div>
 
         {/* 베타테스트 안내 */}
-        <p className="text-xs sm:text-sm text-gray-400 mt-8 text-center">
-          동네밥네.beta
-        </p>
+        <div className="flex items-center justify-center gap-2 mt-8">
+          <p className="text-xs sm:text-sm text-gray-400">
+            동네밥네.beta
+          </p>
+          <button
+            onClick={() => setShowFeedback(true)}
+            className="text-xs sm:text-sm text-gray-400 hover:text-gray-600 underline"
+          >
+            피드백하기
+          </button>
+        </div>
+
+        {/* 피드백 모달 */}
+        {showFeedback && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">피드백 남기기</h3>
+              <textarea
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder="피드백을 입력해주세요..."
+                className="w-full px-4 py-3 text-base text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF3F3F] focus:border-transparent focus:outline-none resize-none"
+                rows={5}
+              />
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={async () => {
+                    if (!feedbackText.trim()) {
+                      alert('피드백을 입력해주세요.');
+                      return;
+                    }
+                    setIsSubmittingFeedback(true);
+                    
+                    try {
+                      const response = await fetch('/api/feedback', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                          feedback: feedbackText,
+                          phone: submittedPhone || undefined
+                        }),
+                      });
+
+                      const result = await response.json();
+
+                      if (!response.ok) {
+                        throw new Error(result.error || '피드백 전송에 실패했습니다.');
+                      }
+
+                      alert('피드백이 전송되었습니다. 감사합니다!');
+                      setFeedbackText('');
+                      setShowFeedback(false);
+                    } catch (error: any) {
+                      console.error('피드백 전송 오류:', error);
+                      alert('피드백 전송에 실패했습니다. 다시 시도해주세요.');
+                    } finally {
+                      setIsSubmittingFeedback(false);
+                    }
+                  }}
+                  disabled={isSubmittingFeedback}
+                  className="flex-1 py-3 px-6 text-white rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: isSubmittingFeedback ? '#9CA3AF' : '#FF3F3F' }}
+                >
+                  {isSubmittingFeedback ? '전송 중...' : '전송하기'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowFeedback(false);
+                    setFeedbackText('');
+                  }}
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

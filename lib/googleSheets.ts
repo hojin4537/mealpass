@@ -221,3 +221,99 @@ export async function saveFeedbackToGoogleSheets(data: {
     throw error;
   }
 }
+
+export async function saveFeedbackWithoutPhone(data: {
+  feedback: string;
+}) {
+  try {
+    // 환경 변수 확인
+    const cleanEnvVar = (value: string | undefined) => {
+      if (!value) return value;
+      return value.replace(/^"|"$/g, '');
+    };
+
+    const serviceAccountEmail = cleanEnvVar(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL);
+    const projectId = cleanEnvVar(process.env.GOOGLE_PROJECT_ID);
+    const spreadsheetId = cleanEnvVar(process.env.GOOGLE_SHEET_ID);
+
+    if (!serviceAccountEmail || !projectId || !spreadsheetId) {
+      throw new Error('Google Sheets 설정이 완료되지 않았습니다.');
+    }
+
+    // Private Key 처리
+    let privateKey: string;
+    
+    if (process.env.GOOGLE_PRIVATE_KEY_BASE64) {
+      const base64Key = cleanEnvVar(process.env.GOOGLE_PRIVATE_KEY_BASE64);
+      if (!base64Key) {
+        throw new Error('GOOGLE_PRIVATE_KEY_BASE64가 설정되지 않았습니다.');
+      }
+      privateKey = Buffer.from(base64Key, 'base64').toString('utf-8');
+    } else {
+      const privateKeyRaw = cleanEnvVar(process.env.GOOGLE_PRIVATE_KEY);
+      if (!privateKeyRaw) {
+        throw new Error('GOOGLE_PRIVATE_KEY 또는 GOOGLE_PRIVATE_KEY_BASE64가 설정되지 않았습니다.');
+      }
+      privateKey = privateKeyRaw
+        .replace(/\\n/g, '\n')
+        .replace(/\\\\n/g, '\n')
+        .replace(/\\r\\n/g, '\n')
+        .replace(/"/g, '');
+    }
+
+    // 서비스 계정 인증
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: serviceAccountEmail,
+        private_key: privateKey,
+        project_id: projectId,
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    console.log('피드백 Google Sheets에 저장 시도... (전화번호 없음)');
+    console.log('저장할 피드백:', data.feedback);
+
+    // G열(중간피드백) 데이터 가져오기
+    const gColumnData = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Sheet1!G:G',
+    });
+
+    const gRows = gColumnData.data.values || [];
+    
+    // G열에서 마지막 비어있지 않은 행 찾기 (헤더 제외)
+    let targetRowIndex = 2; // 기본값: 헤더 다음 행 (2행)
+    
+    // 마지막부터 역순으로 비어있지 않은 행 찾기
+    for (let i = gRows.length - 1; i >= 1; i--) { // i=1부터 시작 (헤더 제외)
+      if (gRows[i] && gRows[i][0] && gRows[i][0].trim() !== '') {
+        targetRowIndex = i + 2; // 다음 빈 행에 추가 (배열 인덱스는 0부터, 행 번호는 1부터)
+        break;
+      }
+    }
+    
+    // 데이터가 없거나 모두 비어있으면 2행에 추가
+    if (gRows.length <= 1) {
+      targetRowIndex = 2;
+    }
+
+    // G열에 피드백 추가
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `Sheet1!G${targetRowIndex}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [[data.feedback]],
+      },
+    });
+
+    console.log(`중간피드백 Google Sheets 저장 성공! (G열 ${targetRowIndex}행)`);
+    return { success: true };
+  } catch (error: any) {
+    console.error('피드백 Google Sheets 저장 오류:', error.message);
+    throw error;
+  }
+}
